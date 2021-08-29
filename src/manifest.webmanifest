@@ -1,6 +1,6 @@
 {
-  "name": "MidasCRM",
-  "short_name": "MidasCRM",
+  "name": "myCRM",
+  "short_name": "myCRM",
   "theme_color": "#1976d2",
   "background_color": "#fafafa",
   "display": "standalone",

@@ -1,1 +1,1 @@
-ng build --output-path /Users/anhjean/Documents/www/crm
+ng build  --output-path /Users/anhjean/Documents/www/crm

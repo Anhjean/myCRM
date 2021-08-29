@@ -1,68 +1,16 @@
-// import env from './.env';
-import te from './checkurl';
-// baseApiUrl: 'https://uat.tekcompay.com:9443',
-export const environment = {
-  production: false,
-  hmr: false,
-  isNewBillPos: true,
-  isCommercial: false, // Phiên bản cung cấp cho khách hàng Commercial thì set biến này thành true
-  version: '-dev',
-  fineractPlatformTenantId: 'default',  // For connecting to server running elsewhere update the tenant identifier
-  baseApiUrl: sessionStorage.getItem('midasServerURL') || 'https://jl-family.com',
-  allowServerSwitch: true,
-  apiProvider: '/midas/api',
-  apiVersion: '/v1',
-  serverUrl: '',
-  GatewayApiUrl: sessionStorage.getItem('midasBillposServerURL') || te.defaultbillposURL,
-  GatewayApiUrlPrefix: '/billpos',
-  GatewayServerUrl: '',
-  GatewayTenantId: te.billposT,
-  IcGatewayApiUrl: te.icBaseUrl,
-  IcGatewayApiUrlPrefix: '/ic-app',
-  IcGatewayTenantId: te.icT,
-  NotiGatewayURL: te.defaultNotiURL,
-  NotiGatewayPrefix: '/notification',
-  ICDocumentURL: te.documentURL,
-  cdnUrl:'https://cdn.kiotthe.app',
-  oauth: {
-    enabled: true,  // For connecting to Midas using OAuth2 Authentication change the value to true
-    clientID: 'community-app',
-    clientSecrect: '123',
-    serverUrl: ''
-  },
-  defaultLanguage: 'vi-VN',
-  supportedLanguages: [
-    'en-US',
-    'vi-VN'
-  ],
-  languagesName: {
-    en: 'English',
-    vi: 'Vietnamese',
-  }
-  ,
-  firebase: {
-    apiKey: 'AIzaSyAtCSdklLZJKt7t2sjd4edRbofqZL7-UCw',
-    authDomain: 'kiotthe-307407.firebaseapp.com',
-    projectId: 'kiotthe-307407',
-    databaseURL: 'https://kiotthe-307407-default-rtdb.firebaseio.com/',
-    storageBucket: 'kiotthe-307407.appspot.com',
-    messagingSenderId: '83286799966',
-    appId: '1:83286799966:web:b46ce89fcbbdf4c0f2e6cf',
-    measurementId: 'G-866JPR188B'
-  },
-  GA_TRACKING_ID: 'G-WML6QQ48CQ',
-  applyLuhnAlgorithm: true,
-  // set key name
-  keyName:{
-    credentialsStorageKey:'Credentials',
-    oAuthTokenDetailsStorageKey: 'OAuthTokenDetails',
-    twoFactorAuthenticationTokenStorageKey: 'TwoFactorAuthenticationToken'
-  }
+// This file can be replaced during build by using the `fileReplacements` array.
+// `ng build` replaces `environment.ts` with `environment.prod.ts`.
+// The list of file replacements can be found in `angular.json`.
 
+export const environment = {
+  production: false
 };
 
-// Server URL
-environment.serverUrl = `${environment.baseApiUrl}${environment.apiProvider}${environment.apiVersion}`;
-environment.oauth.serverUrl = `${environment.baseApiUrl}${environment.apiProvider}`;
-environment.GatewayServerUrl = `${environment.GatewayApiUrl}`;
-environment.NotiGatewayURL = `${environment.NotiGatewayURL}${environment.NotiGatewayPrefix}`;
+/*
+ * For easier debugging in development mode, you can import the following file
+ * to ignore zone related error stack frames such as `zone.run`, `zoneDelegate.invokeTask`.
+ *
+ * This import should be commented out in production mode because it will have a negative impact
+ * on performance if an error is thrown.
+ */
+// import 'zone.js/plugins/zone-error';  // Included with Angular CLI.
