@@ -7,6 +7,10 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CoreModule } from './core/core.module';
+import { CheckUpdateService } from './service-worker/check-update.service';
+import { HandleUnrecoverableStateService } from './service-worker/handle-unrecoverable-state.service';
+import { LogUpdateService } from './service-worker/log-update.service';
+import { PromptUpdateService } from './service-worker/prompt-update.service';
 
 @NgModule({
   declarations: [
@@ -27,7 +31,7 @@ import { CoreModule } from './core/core.module';
     CoreModule,
 
   ],
-  providers: [],
+  providers: [PromptUpdateService,LogUpdateService,HandleUnrecoverableStateService,CheckUpdateService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

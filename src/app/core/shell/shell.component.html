@@ -4,6 +4,23 @@
       <mat-icon>menu</mat-icon>
     </button>
     <h1 class="app-name">Responsive App</h1>
+
+    <button
+    mat-menu-item
+    (click)="requestPermission()"
+    *ngIf="!(subscription$ | async) &&  isEnabled"
+  >
+    <mat-icon>notifications_on</mat-icon>
+    <span>Enable alerts</span>
+  </button>
+  <button
+    mat-menu-item
+    (click)="requestUnsubscribe()"
+    *ngIf="subscription$ | async"
+  >
+    <mat-icon>notifications_off</mat-icon>
+    <span>Disabled alerts</span>
+  </button>
   </mat-toolbar>
 
   <mat-sidenav-container
