@@ -26,7 +26,7 @@ export const environment = {
   IcGatewayApiUrl: te.icBaseUrl,
   IcGatewayApiUrlPrefix: '/ic-app',
   IcGatewayTenantId: te.icT,
-  NotiGatewayURL: "https://pwa.jl-family.com",
+  NotiGatewayURL: "https://jl-family.com",
   NotiGatewayPrefix: '/notification',
   ICDocumentURL: te.documentURL,
   cdnUrl:'https://cdn.kiotthe.app',
