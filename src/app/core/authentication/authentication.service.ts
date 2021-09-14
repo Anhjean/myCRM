@@ -18,6 +18,8 @@ import { environment } from '../../../environments/environment';
 /** Custom Models */
 import { LoginContext, Credentials, OAuth2Token } from './authentication.model';
 import { Router } from '@angular/router';
+import { PouchdbService } from '../pouchdb/pouchdb.service';
+
 /**
  * Authentication workflow.
  */
@@ -34,7 +36,6 @@ export class AuthenticationService {
    */
   private storage: any;
   /** User credentials. */
-
   private credentials?: Credentials;
   /** Key to store credentials in storage. */
   private credentialsStorageKey = 'Credentials';
@@ -43,6 +44,7 @@ export class AuthenticationService {
   /** Key to store two factor authentication token in storage. */
   private twoFactorAuthenticationTokenStorageKey =
     'TwoFactorAuthenticationToken';
+  private NOTI_SERVER_KEY = 'noti-server-key';
 
   /**
    * Initializes the type of storage and authorization headers depending on whether
@@ -55,7 +57,8 @@ export class AuthenticationService {
     private http: HttpClient,
     private alertService: AlertService,
     private authenticationInterceptor: AuthenticationInterceptor,
-    private router:Router
+    private router: Router,
+    private pdb: PouchdbService
   ) {
     this.rememberMe = false;
     this.storage = sessionStorage;
@@ -107,22 +110,18 @@ export class AuthenticationService {
       const body = new HttpParams()
         .set('client_id', environment.oauth.clientID)
         .set('grant_type', environment.oauth.grantType)
-        .set('client_secret',environment.oauth.clientSecrect)
-        .set('username',loginContext.username)
-        .set('password',loginContext.password)
+        .set('client_secret', environment.oauth.clientSecrect)
+        .set('username', loginContext.username)
+        .set('password', loginContext.password);
 
       return this.http
         .disableApiPrefix()
-        .post(
-          `${environment.oauth.serverUrl}/oauth/token`,
-          body.toString(),
-          {
-            headers: new HttpHeaders().set(
-              'Content-Type',
-              'application/x-www-form-urlencoded'
-            ),
-          }
-        )
+        .post(`${environment.oauth.serverUrl}/oauth/token`, body.toString(), {
+          headers: new HttpHeaders().set(
+            'Content-Type',
+            'application/x-www-form-urlencoded'
+          ),
+        })
         .pipe(
           map((tokenResponse: OAuth2Token | any) => {
             this.getUserDetails(tokenResponse);
@@ -160,12 +159,14 @@ export class AuthenticationService {
     this.http
       .get('/userdetails', { params: httpParams })
       .subscribe((credentials: Credentials | any) => {
-        this.onLoginSuccess(credentials);
+
+        this.onLoginSuccess(credentials,tokenResponse);
         if (!credentials.shouldRenewPassword) {
           this.storage.setItem(
             this.oAuthTokenDetailsStorageKey,
             JSON.stringify(tokenResponse)
           );
+
         }
       });
   }
@@ -192,7 +193,7 @@ export class AuthenticationService {
     httpParams = httpParams.set('client_secret', '123');
     httpParams = httpParams.set('refresh_token', oAuthRefreshToken);
     this.http
-      // .disableApiPrefix()
+      .disableApiPrefix()
       .post(
         `${environment.oauth.serverUrl}/oauth/token`,
         {},
@@ -215,6 +216,9 @@ export class AuthenticationService {
           this.credentialsStorageKey,
           JSON.stringify(credentials)
         );
+        // indexedDB
+        this.pdb.upsertItem(this.credentialsStorageKey,credentials)
+        this.pdb.upsertItem(this.oAuthTokenDetailsStorageKey,tokenResponse)
       });
   }
 
@@ -228,9 +232,17 @@ export class AuthenticationService {
    * Sends an alert on successful login.
    * @param {Credentials} credentials Authenticated user credentials.
    */
-  private onLoginSuccess(credentials: Credentials) {
+  private onLoginSuccess(credentials: Credentials, tokenResponse?: OAuth2Token) {
+
     if (credentials) {
+      this.pdb.init(credentials.username)
+      this.pdb.upsertItem(this.credentialsStorageKey,credentials,true);
+      this.getNotiKey();
       if (environment.oauth.enabled) {
+
+        if (tokenResponse){
+        this.pdb.upsertItem(this.oAuthTokenDetailsStorageKey,tokenResponse,true)}
+
         this.authenticationInterceptor.setAuthorizationToken(
           credentials.accessToken!
         );
@@ -245,6 +257,7 @@ export class AuthenticationService {
           type: 'Two Factor Authentication Required',
           message: 'Two Factor Authentication Required',
         });
+
       } else {
         if (credentials.shouldRenewPassword) {
           this.credentials = credentials;
@@ -260,6 +273,7 @@ export class AuthenticationService {
           });
           delete this.credentials;
           this.router.navigate(['/'], { replaceUrl: true });
+
         }
       }
     }
@@ -281,9 +295,30 @@ export class AuthenticationService {
     }
     this.authenticationInterceptor.removeAuthorization();
     this.setCredentials();
-    this.alertService.alert({type: "alert",message:" Logout"})
+    this.alertService.alert({ type: 'alert', message: ' Logout' });
+    this.pdb.deleteItem(this.credentialsStorageKey,true);
     this.router.navigate(['/'], { replaceUrl: true });
     return of(true);
+  }
+
+  /** Get noti server key */
+  getNotiKey(){
+    this.http
+        .disableApiPrefix()
+        .get(environment.notiGatewayURL + '/publicSigningKeyBase64')
+        .subscribe(
+          async (res: any) => {
+            // notiServerKey = res;
+            // console.log('notiServerKey- not in pdb', res);
+
+            await this.pdb.upsertItem(
+              this.NOTI_SERVER_KEY,
+              res,
+              true
+            );
+          },
+          (err) => console.log('Get notiServerKey error: ', err),
+        );
   }
 
   /**

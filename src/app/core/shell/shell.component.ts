@@ -9,6 +9,7 @@ import { AlertService } from '../alert/alert.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { Credentials } from '../authentication/authentication.model';
+import { PouchdbService } from '../pouchdb/pouchdb.service';
 
 class DeviceDto {
   username: String | undefined;
@@ -31,9 +32,10 @@ export class ShellComponent implements OnInit, OnDestroy {
   // {"publicKey":"BIrfWb0FxhpnQ8FUj5LdB1p0Za38C2CptrGqD8-tPqebVXoeyPByIz9e1Kqu0eRYhgIHXkeFuR3451RpMoKpSi8",
   // "privateKey":"dr0VMYN0iUDch_v42nGaCk3eQ_ehZhcfRXg8b18thqo"}
   private VAPID_PUBLIC_KEY = '';
+  private NOTI_SERVER_KEY = 'noti-server-key';
 
   private device: DeviceDto = new DeviceDto();
-  private credential:Credentials ;
+  private credential: Credentials;
 
   public subscription$ = this.swPush.subscription;
   public isEnabled = this.swPush.isEnabled;
@@ -43,9 +45,14 @@ export class ShellComponent implements OnInit, OnDestroy {
     media: MediaMatcher,
     private swPush: SwPush,
     private alertService: AlertService,
-    private http: HttpClient
+    private http: HttpClient,
+    private pdb: PouchdbService
   ) {
-    this.credential = JSON.parse(localStorage.getItem("Credentials")|| sessionStorage.getItem("Credentials")||"{}");
+    this.credential = JSON.parse(
+      localStorage.getItem('Credentials') ||
+        sessionStorage.getItem('Credentials') ||
+        '{}'
+    );
     this.mobileQuery = media.matchMedia('(max-width: 600px)');
     this._mobileQueryListener = () => changeDetectorRef.detectChanges();
     this.mobileQuery.addListener(this._mobileQueryListener);
@@ -60,22 +67,30 @@ export class ShellComponent implements OnInit, OnDestroy {
       this.handlePushNotificationClick(options)
     );
   }
-  ngOnInit() {
-    if (this.credential){
-
-    this.http
-      .disableApiPrefix()
-      .get(environment.NotiGatewayURL+'/publicSigningKeyBase64')
-      .subscribe(
-        (res: any) => {
-          if (res.result) {
-            this.VAPID_PUBLIC_KEY = res.result;
-          }
-          console.log('deviceID:',navigator.mediaDevices.getSupportedConstraints.toString());
-        },
-        (e) => console.log('error: ', e),
-        () => this.requestPermission()
-      );
+  async ngOnInit() {
+    let notiServerKey = await this.pdb.getItem(this.NOTI_SERVER_KEY, true)
+    console.log(this.NOTI_SERVER_KEY+" lalal: ", notiServerKey);
+    if (notiServerKey !== null) {
+      this.VAPID_PUBLIC_KEY = notiServerKey.result;
+      await this.requestPermission();
+    } else {
+      // this.http
+      //   .disableApiPrefix()
+      //   .get(environment.notiGatewayURL + '/publicSigningKeyBase64')
+      //   .subscribe(
+      //     async (res: any) => {
+      //       notiServerKey = res;
+      //       console.log('notiServerKey- not in pdb', notiServerKey);
+      //       this.VAPID_PUBLIC_KEY = notiServerKey;
+      //       await this.pdb.upsertItem(
+      //         this.NOTI_SERVER_KEY,
+      //         notiServerKey,
+      //         true
+      //       );
+      //     },
+      //     (err) => console.log('Get notiServerKey error: ', err),
+      //     () => this.requestPermission()
+      //   );
     }
   }
 
@@ -118,32 +133,37 @@ export class ShellComponent implements OnInit, OnDestroy {
 
   async requestPermission() {
     console.log('Request starting...');
-    console.log('Request Key: ', this.VAPID_PUBLIC_KEY);
-
+    console.log('request: ', this.VAPID_PUBLIC_KEY);
+    // if(environment.production){
     try {
-      const sub = await this.swPush.requestSubscription({
-        serverPublicKey: this.VAPID_PUBLIC_KEY,
-      });
+
+      const sub = await this.swPush.requestSubscription({serverPublicKey: this.VAPID_PUBLIC_KEY});
       // TODO: Send to server.
+      if (sub) {
+        this.device.username = this.credential.username;
+        this.device.officeName = this.credential.officeName;
+        this.device.subscription = sub.toJSON();
+        const subJSON = JSON.parse(JSON.stringify(this.device));
+        // if (subJSON.expirationTime === undefined) {
+        //   subJSON.expirationTime = null;
+        // }
 
-      // const subJSON = sub.toJSON();
-
-      this.device.username = this.credential.username;
-      this.device.officeName = this.credential.officeName;
-      this.device.subscription = sub.toJSON();
-      const subJSON = JSON.parse(JSON.stringify(this.device));
-
-      // if (subJSON.expirationTime === undefined) {
-      //   subJSON.expirationTime = null;
-      // }
-      console.log('subJson', subJSON);
-      await this.http
-        .post(environment.NotiGatewayURL+'/deviceSubscribe', subJSON)
-        .subscribe((res) => console.log('subscribe result:', res));
-      return this.alertService.alert({
-        type: 'Notification',
-        message: 'You are subscribed now!',
-      });
+        console.log('subJson', subJSON);
+        this.http
+          .post(environment.notiGatewayURL + '/deviceSubscribe', subJSON)
+          .subscribe(
+            (res) => console.log('subscribe result:', res),
+            (err) => console.log('Error', err),
+            () => {
+              return this.alertService.alert({
+                type: 'Notification',
+                message: 'You are subscribed now!',
+              });
+            }
+          );
+      } else{
+        console.info('sub have problem:', sub)
+      }
     } catch (err) {
       console.error('Could not subscribe due to:', err);
       this.alertService.alert({
@@ -151,6 +171,9 @@ export class ShellComponent implements OnInit, OnDestroy {
         message: 'Subscription fail',
       });
     }
+  // } else{
+  //   console.log('Not on production mode.')
+  // }
   }
   requestUnsubscribe() {
     this.swPush

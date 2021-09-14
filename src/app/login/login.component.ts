@@ -3,6 +3,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthenticationService } from '../core/authentication/authentication.service';
 import { Logger } from '../core/logger/logger.service';
+import { PouchdbService } from '../core/pouchdb/pouchdb.service';
 
 const log = new Logger('Login');
 
@@ -32,9 +33,9 @@ export class LoginComponent implements OnInit {
     this.authen.login({
       username: this.loginContext.get('username')?.value,
       password: this.loginContext.get('password')?.value,
-      remember: this.loginContext.get('rememberMe')?.value}).toPromise().then(() => {
+      remember: this.loginContext.get('rememberMe')?.value}).subscribe(() => {
         log.debug('just complete');
-        // this.router.navigate(['/'], { replaceUrl: true });
+
       })
 
   }

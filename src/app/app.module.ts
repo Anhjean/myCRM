@@ -11,7 +11,15 @@ import { CheckUpdateService } from './service-worker/check-update.service';
 import { HandleUnrecoverableStateService } from './service-worker/handle-unrecoverable-state.service';
 import { LogUpdateService } from './service-worker/log-update.service';
 import { PromptUpdateService } from './service-worker/prompt-update.service';
+import { PouchdbService } from './core/pouchdb/pouchdb.service';
+// import { IdbModule } from './core/idb/idb.module';
+// import { DBConfig } from './core/idb/idb_meta';
 
+// const dbConfig: DBConfig  = {
+//   name: 'MyDb',
+//   version: 1,
+//   objectStoresMeta: []
+// };
 @NgModule({
   declarations: [
     AppComponent
@@ -29,9 +37,10 @@ import { PromptUpdateService } from './service-worker/prompt-update.service';
     }),
     BrowserAnimationsModule,
     CoreModule,
+    // IdbModule.forRoot(dbConfig)
 
   ],
-  providers: [PromptUpdateService,LogUpdateService,HandleUnrecoverableStateService,CheckUpdateService],
+  providers: [PromptUpdateService,LogUpdateService,HandleUnrecoverableStateService,CheckUpdateService,PouchdbService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
