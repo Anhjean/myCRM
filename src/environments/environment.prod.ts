@@ -26,8 +26,9 @@ export const environment = {
   IcGatewayApiUrl: te.icBaseUrl,
   IcGatewayApiUrlPrefix: '/ic-app',
   IcGatewayTenantId: te.icT,
-  NotiGatewayURL: "https://jl-family.com",
+  notiGatewayURL: "https://jl-family.com",
   NotiGatewayPrefix: '/notification',
+  remotePdbUrl: 'https://jean:Anhnh7383#@jl-family.com/couchdb/',
   ICDocumentURL: te.documentURL,
   cdnUrl:'https://cdn.kiotthe.app',
   oauth: {
@@ -59,5 +60,5 @@ export const environment = {
 environment.serverUrl = `${environment.baseApiUrl}${environment.apiProvider}${environment.apiVersion}`;
 environment.oauth.serverUrl = `${environment.baseApiUrl}${environment.apiProvider}`;
 environment.GatewayServerUrl = `${environment.GatewayApiUrl}`;
-environment.NotiGatewayURL = `${environment.NotiGatewayURL}${environment.NotiGatewayPrefix}`;
+environment.notiGatewayURL = `${environment.notiGatewayURL}${environment.NotiGatewayPrefix}`;
 
